@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Lamissaad</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+  <section id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-symbol">✳</div>
+      <span class="eyebrow">PRIVATE ACCESS</span>
+      <h1>Bem-vindo.</h1>
+      <p>Entre na sua central de operações.</p>
+
+      <form id="loginForm">
+        <label>Nome de usuário</label>
+        <input id="username" type="text" placeholder="Seu usuário" autocomplete="username" required>
+
+        <label>Senha</label>
+        <input id="password" type="password" placeholder="Sua senha" autocomplete="current-password" required>
+
+        <button type="submit" id="loginButton">Entrar na plataforma <span>→</span></button>
+        <p id="loginMessage" class="message"></p>
+      </form>
+      <div class="login-footer">LAMISSAAD <span>©</span></div>
+    </div>
+  </section>
+
+  <div id="app" class="app hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">✳</div>
+        <div>
+          <strong>CONTROL</strong>
+          <small>BUSINESS INTELLIGENCE</small>
+        </div>
+      </div>
+
+      <div class="menu-label">WORKSPACE</div>
+      <nav>
+        <button class="nav-item active" data-page="dashboard">◫ <span>Visão geral</span></button>
+        <button class="nav-item" data-page="orders">▤ <span>Pedidos</span></button>
+        <button class="nav-item" data-page="products">◇ <span>Produtos</span></button>
+        <button class="nav-item" data-page="customers">♙ <span>Clientes</span></button>
+        <button class="nav-item" data-page="finance">⌁ <span>Financeiro</span></button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="user-mini">
+          <div class="avatar" id="userAvatar">U</div>
+          <div class="user-info">
+            <strong id="sidebarUsername">Usuário</strong>
+            <small>Conta pessoal</small>
+          </div>
+        </div>
+        <button id="logoutButton" class="logout">↪ Sair da conta</button>
+        <div class="signature">LAMISSAAD <span>@</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <span class="eyebrow">YOUR BUSINESS, IN ONE PLACE</span>
+          <h1 id="pageTitle">Visão geral</h1>
+        </div>
+        <div class="top-right">
+          <span class="live-indicator">● SISTEMA ONLINE</span>
+          <div class="top-avatar" id="topAvatar">U</div>
+        </div>
+      </header>
+
+      <section id="dashboardPage" class="page">
+        <div class="welcome-row">
+          <div>
+            <h2>Seu negócio em perspectiva.</h2>
+            <p>Acompanhe seus resultados em tempo real.</p>
+          </div>
+          <span class="date-label" id="currentDate"></span>
+        </div>
+
+        <div class="metrics">
+          <article class="metric-card">
+            <span>FATURAMENTO TOTAL</span>
+            <strong id="revenue">R$ 0,00</strong>
+            <small>Valor dos pedidos cadastrados</small>
+            <div class="metric-icon">↗</div>
+          </article>
+          <article class="metric-card">
+            <span>LUCRO ESTIMADO</span>
+            <strong id="profit">R$ 0,00</strong>
+            <small>Vendas menos custos e despesas</small>
+            <div class="metric-icon">✳</div>
+          </article>
+          <article class="metric-card">
+            <span>PEDIDOS</span>
+            <strong id="orderCount">0</strong>
+            <small>Pedidos registrados</small>
+            <div class="metric-icon">▤</div>
+          </article>
+          <article class="metric-card">
+            <span>PRODUTOS</span>
+            <strong id="productCount">0</strong>
+            <small>Produtos cadastrados</small>
+            <div class="metric-icon">◇</div>
+          </article>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="panel chart-panel">
+            <div class="panel-heading">
+              <div><span class="eyebrow">PERFORMANCE</span><h3>Desempenho de vendas</h3></div>
+              <span class="panel-tag">HISTÓRICO</span>
+            </div>
+            <div class="chart-wrap"><canvas id="salesChart"></canvas></div>
+            <p id="salesEmpty" class="empty-note">Seus dados de vendas aparecerão aqui quando você cadastrar pedidos.</p>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div><span class="eyebrow">OVERVIEW</span><h3>Resumo financeiro</h3></div>
+            </div>
+            <div class="finance-total" id="financeTotal">R$ 0,00</div>
+            <p class="muted">Faturamento registrado</p>
+            <div class="finance-legend">
+              <div><i class="dot green"></i> Faturamento <strong id="legendRevenue">R$ 0,00</strong></div>
+              <div><i class="dot pale"></i> Despesas <strong id="legendExpenses">R$ 0,00</strong></div>
+            </div>
+            <div class="chart-wrap small"><canvas id="financeChart"></canvas></div>
+          </article>
+        </div>
+
+        <article class="panel map-panel">
+          <div class="panel-heading">
+            <div><span class="eyebrow">GLOBAL REACH</span><h3>Visão global de vendas</h3></div>
+            <span class="panel-tag">WORLD NETWORK</span>
+          </div>
+          <div class="world-map">
+            <div class="map-glow"></div>
+            <svg viewBox="0 0 900 380" role="img" aria-label="Mapa mundial ilustrativo com conexões">
+              <g class="continents">
+                <path d="M90 91 L130 55 190 60 220 94 205 125 174 140 160 184 130 178 112 143 80 130Z"/>
+                <path d="M210 190 L247 207 260 246 245 288 228 330 210 295 199 250Z"/>
+                <path d="M390 78 L435 60 475 75 490 105 470 128 445 122 425 145 398 125Z"/>
+                <path d="M420 145 L465 137 500 165 495 215 470 260 440 242 420 195Z"/>
+                <path d="M500 75 L565 55 640 75 690 110 675 145 625 151 590 130 550 145 515 120Z"/>
+                <path d="M690 220 L735 211 765 238 748 273 710 280 686 250Z"/>
+              </g>
+              <g class="routes">
+                <path d="M160 125 Q320 10 450 110"/>
+                <path d="M450 110 Q560 55 635 115"/>
+                <path d="M450 110 Q510 235 710 245"/>
+                <path d="M160 125 Q250 210 230 270"/>
+              </g>
+              <g class="map-points">
+                <circle cx="160" cy="125" r="5"/><circle cx="450" cy="110" r="5"/>
+                <circle cx="635" cy="115" r="5"/><circle cx="710" cy="245" r="5"/>
+                <circle cx="230" cy="270" r="5"/>
+              </g>
+            </svg>
+            <div class="map-caption"><span>◉</span> Mapa ilustrativo · Regiões de vendas aparecerão conforme os pedidos forem cadastrados.</div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div><span class="eyebrow">LATEST ACTIVITY</span><h3>Pedidos recentes</h3></div>
+            <button class="text-button" data-goto="orders">Ver todos →</button>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>CLIENTE</th><th>PRODUTO</th><th>VALOR</th><th>STATUS</th></tr></thead>
+              <tbody id="recentOrders"></tbody>
+            </table>
+          </div>
+          <p id="ordersEmpty" class="empty-note">Nenhum pedido cadastrado ainda.</p>
+        </article>
+      </section>
+
+      <section id="ordersPage" class="page hidden">
+        <div class="page-intro"><div><h2>Pedidos</h2><p>Gerencie as vendas do seu negócio.</p></div></div>
+        <form id="orderForm" class="panel form-grid">
+            <div class="form-group">
+  <label for="orderCountry">País do cliente</label>
+  <select id="orderCountry" required>
+    <option value="Brasil">🇧🇷 Brasil</option>
+    <option value="Estados Unidos">🇺🇸 Estados Unidos</option>
+    <option value="Portugal">🇵🇹 Portugal</option>
+    <option value="Reino Unido">🇬🇧 Reino Unido</option>
+    <option value="Espanha">🇪🇸 Espanha</option>
+    <option value="França">🇫🇷 França</option>
+    <option value="Alemanha">🇩🇪 Alemanha</option>
+    <option value="Itália">🇮🇹 Itália</option>
+    <option value="Canadá">🇨🇦 Canadá</option>
+    <option value="México">🇲🇽 México</option>
+    <option value="Argentina">🇦🇷 Argentina</option>
+    <option value="Japão">🇯🇵 Japão</option>
+    <option value="Austrália">🇦🇺 Austrália</option>
+  </select>
+</div>
+          <input id="orderCustomer" placeholder="Nome do cliente" required>
+          <input id="orderProduct" placeholder="Produto vendido" required>
+          <input id="orderAmount" type="number" min="0.01" step="0.01" placeholder="Valor (R$)" required>
+          <select id="orderStatus"><option>Pendente</option><option>Pago</option><option>Enviado</option><option>Concluído</option><option>Cancelado</option></select>
+          <button class="primary-button" type="submit">+ Adicionar pedido</button>
+        </form>
+        <article class="panel">
+          <div class="panel-heading"><h3>Todos os pedidos</h3><input id="orderSearch" class="search-input" placeholder="Buscar pedido..."></div>
+          <div class="table-scroll"><table><thead><tr><th>CLIENTE</th><th>PRODUTO</th><th>VALOR</th><th>STATUS</th><th></th></tr></thead><tbody id="ordersTable"></tbody></table></div>
+          <p id="ordersPageEmpty" class="empty-note">Nenhum pedido cadastrado.</p>
+        </article>
+      </section>
+
+      <section id="productsPage" class="page hidden">
+        <div class="page-intro"><div><h2>Produtos</h2><p>Controle seu catálogo e seus custos.</p></div></div>
+        <form id="productForm" class="panel form-grid">
+          <input id="productName" placeholder="Nome do produto" required>
+          <input id="productCost" type="number" min="0" step="0.01" placeholder="Custo (R$)" required>
+          <input id="productPrice" type="number" min="0" step="0.01" placeholder="Preço de venda (R$)" required>
+          <input id="productStock" type="number" min="0" step="1" placeholder="Estoque" required>
+          <button class="primary-button" type="submit">+ Adicionar produto</button>
+        </form>
+        <article class="panel"><div class="panel-heading"><h3>Catálogo</h3></div>
+          <div class="table-scroll"><table><thead><tr><th>PRODUTO</th><th>CUSTO</th><th>PREÇO</th><th>ESTOQUE</th><th></th></tr></thead><tbody id="productsTable"></tbody></table></div>
+          <p id="productsEmpty" class="empty-note">Nenhum produto cadastrado.</p>
+        </article>
+      </section>
+
+      <section id="customersPage" class="page hidden">
+        <div class="page-intro"><div><h2>Clientes</h2><p>Organize sua base de clientes.</p></div></div>
+        <form id="customerForm" class="panel form-grid">
+          <input id="customerName" placeholder="Nome do cliente" required>
+          <input id="customerEmail" type="email" placeholder="E-mail (opcional)">
+          <button class="primary-button" type="submit">+ Adicionar cliente</button>
+        </form>
+        <article class="panel"><div class="panel-heading"><h3>Seus clientes</h3></div>
+          <div class="table-scroll"><table><thead><tr><th>NOME</th><th>E-MAIL</th><th>CADASTRO</th><th></th></tr></thead><tbody id="customersTable"></tbody></table></div>
+          <p id="customersEmpty" class="empty-note">Nenhum cliente cadastrado.</p>
+        </article>
+      </section>
+
+      <section id="financePage" class="page hidden">
+        <div class="page-intro"><div><h2>Financeiro</h2><p>Acompanhe suas despesas e resultados.</p></div></div>
+        <form id="expenseForm" class="panel form-grid">
+          <input id="expenseDescription" placeholder="Descrição da despesa" required>
+          <input id="expenseAmount" type="number" min="0.01" step="0.01" placeholder="Valor (R$)" required>
+          <button class="primary-button" type="submit">+ Registrar despesa</button>
+        </form>
+        <article class="panel"><div class="panel-heading"><h3>Despesas registradas</h3></div>
+          <div class="table-scroll"><table><thead><tr><th>DESCRIÇÃO</th><th>VALOR</th><th>DATA</th><th></th></tr></thead><tbody id="expensesTable"></tbody></table></div>
+          <p id="expensesEmpty" class="empty-note">Nenhuma despesa cadastrada.</p>
+        </article>
+      </section>
+
+      <footer class="main-footer">DESIGNED BY <strong>LAMISSAAD @</strong> <span>· BUSINESS CONTROL SYSTEM</span></footer>
+    </main>
+  </div>
+</body>
+</html>
